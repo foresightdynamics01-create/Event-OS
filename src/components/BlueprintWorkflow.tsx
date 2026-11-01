@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { EventBlueprint, EventType } from '../types/event';
 import { formatCurrency } from '../utils/budget';
+import venueImage from '../assets/images/glasshouse_conservatory_venue_1793552717771.jpg';
 
 interface BlueprintWorkflowProps {
   blueprint: EventBlueprint;
@@ -112,13 +113,14 @@ export const BlueprintWorkflow: React.FC<BlueprintWorkflowProps> = ({
       <div className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950">
         <div className="relative h-64 sm:h-72 w-full bg-zinc-900">
           <img
-            src="/src/assets/images/glasshouse_conservatory_venue_1793552717771.jpg"
+            src={venueImage || '/images/glasshouse_conservatory_venue.jpg'}
             alt="Venue Architecture"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover brightness-85 contrast-105"
             onError={(e) => {
-              // Styled fallback container if image fails
-              e.currentTarget.style.display = 'none';
+              if (e.currentTarget.src !== window.location.origin + '/images/glasshouse_conservatory_venue.jpg') {
+                e.currentTarget.src = '/images/glasshouse_conservatory_venue.jpg';
+              }
             }}
           />
           {/* Measured Dark Scrim */}

@@ -18,7 +18,37 @@ const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
 const isProd = process.env.NODE_ENV === 'production';
 
-app.use(express.json({ limit: '1mb' }));
+// Security & Hardening Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Lightweight sliding-window rate limiter for /api/* routes (60 req / min per IP)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+app.use('/api', (req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown-ip';
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const maxReq = 60;
+
+  const record = rateLimitMap.get(ip);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return next();
+  }
+
+  if (record.count >= maxReq) {
+    return res.status(429).json({ error: 'Too many requests. Please wait one minute before retrying.' });
+  }
+
+  record.count += 1;
+  next();
+});
+
+app.use(express.json({ limit: '500kb' }));
 
 // Shared Google GenAI client
 const apiKey = process.env.GEMINI_API_KEY || '';
@@ -92,6 +122,15 @@ app.post('/api/blueprint/synthesize', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Title and event type are required.' });
     }
 
+    const cleanTitle = String(title).trim().slice(0, 150);
+    const cleanType = String(type).trim().slice(0, 100);
+    const cleanDate = String(date || '').trim().slice(0, 50);
+    const cleanVenue = String(venueName || 'Designated Venue').trim().slice(0, 150);
+    const cleanLocation = String(location || 'San Francisco, CA').trim().slice(0, 150);
+    const cleanNotes = String(productionNotes || 'None provided').trim().slice(0, 3000);
+    const validGuests = Math.max(1, Math.min(50000, Number(guestCount) || 140));
+    const validBudget = Math.max(500, Math.min(100000000, Number(targetBudget) || 68000));
+
     const systemPrompt = `You are a world-class luxury event producer and logistical director who operates with Don Norman's real-world design discipline, high craftsmanship, and zero generic marketing fluff.
 You are designing an operational event blueprint for a high-stakes occasion.
 Always respond strictly in valid JSON matching this schema:
@@ -112,12 +151,12 @@ Always respond strictly in valid JSON matching this schema:
 }`;
 
     const userPrompt = `Synthesize an operational event blueprint for:
-- Event: ${title} (${type})
-- Date: ${date || 'Upcoming'}
-- Location: ${venueName || 'Designated Venue'}, ${location || 'San Francisco'}
-- Guest Count: ${guestCount || 140} attendees
-- Target Budget: $${targetBudget || 68000}
-- Production Notes: ${productionNotes || 'None provided'}`;
+- Event: ${cleanTitle} (${cleanType})
+- Date: ${cleanDate || 'Upcoming'}
+- Location: ${cleanVenue}, ${cleanLocation}
+- Guest Count: ${validGuests} attendees
+- Target Budget: $${validBudget}
+- Production Notes: ${cleanNotes}`;
 
     const text = await callGeminiSafe(userPrompt, systemPrompt);
     const data = extractAndParseJSON(text, {
@@ -152,6 +191,18 @@ app.post('/api/stress-test/simulate', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Scenario title is required.' });
     }
 
+    const cleanTitle = String(scenarioTitle).trim().slice(0, 200);
+    const cleanDesc = String(scenarioDescription || 'None provided').trim().slice(0, 2000);
+    const validGuests = Math.max(1, Math.min(50000, Number(guestCount) || 140));
+    const validBudget = Math.max(500, Math.min(100000000, Number(currentBudget) || 68000));
+    const cleanCategories = Array.isArray(categories)
+      ? categories.slice(0, 15).map((c: any) => ({
+          id: String(c.id || '').slice(0, 50),
+          name: String(c.name || '').slice(0, 100),
+          alloc: Number(c.alloc || c.allocatedAmount) || 0,
+        }))
+      : [];
+
     const systemPrompt = `You are an event crisis management and operational continuity director.
 Analyze the stress test scenario mathematically and operationally.
 Compute real-world financial cost delta, timeline slip in minutes, severity tier ('low', 'moderate', 'high', 'critical'), and step-by-step mitigation protocols.
@@ -183,10 +234,10 @@ Always respond strictly in valid JSON matching this schema:
 }`;
 
     const userPrompt = `Simulate this event contingency scenario:
-Scenario: ${scenarioTitle}
-Details: ${scenarioDescription || 'None provided'}
-Current Event Scale: ${guestCount || 140} guests, Total Budget: $${currentBudget || 68000}
-Categories: ${JSON.stringify(categories || [])}`;
+Scenario: ${cleanTitle}
+Details: ${cleanDesc}
+Current Event Scale: ${validGuests} guests, Total Budget: $${validBudget}
+Categories: ${JSON.stringify(cleanCategories)}`;
 
     const text = await callGeminiSafe(userPrompt, systemPrompt);
     const data = extractAndParseJSON(text, {
@@ -220,9 +271,13 @@ app.post('/api/contract/audit', async (req: Request, res: Response) => {
   try {
     const { rawQuoteText, vendorName, serviceCategory } = req.body;
 
-    if (!rawQuoteText || rawQuoteText.trim().length < 10) {
+    if (!rawQuoteText || String(rawQuoteText).trim().length < 10) {
       return res.status(400).json({ error: 'Valid contract or quote text is required for auditing.' });
     }
+
+    const cleanQuote = String(rawQuoteText).trim().slice(0, 4000);
+    const cleanVendor = String(vendorName || 'Vendor').trim().slice(0, 150);
+    const cleanCategory = String(serviceCategory || 'Event Supplier').trim().slice(0, 150);
 
     const systemPrompt = `You are a seasoned event contract negotiator and forensic procurement auditor.
 Audit the provided vendor quote/contract text with razor-sharp scrutiny.
@@ -334,10 +389,11 @@ ${(eventContext.categories || [])
 - Primary Production Notes: ${eventContext.productionNotes || 'None'}`;
     }
 
-    // Convert messages to GenAI contents structure
-    const contents = messages.map((m: { role: string; content: string }) => ({
+    // Convert bounded messages (last 20 turns) to GenAI contents structure with length limits
+    const boundedMessages = messages.slice(-20);
+    const contents = boundedMessages.map((m: { role: string; content: string }) => ({
       role: m.role === 'model' || m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
+      parts: [{ text: String(m.content || '').slice(0, 2000) }],
     }));
 
     const response = await ai.models.generateContent({

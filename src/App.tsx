@@ -32,10 +32,58 @@ import { NormanPrinciplesModal } from './components/NormanPrinciplesModal';
 import { ExportModal } from './components/ExportModal';
 import { AlertDialog } from './components/AlertDialog';
 import { Layers, ShieldCheck, Compass } from 'lucide-react';
+import producerAvatar from './assets/images/producer_avatar_1793552717561.jpg';
 
 const STORAGE_KEY = 'eventos_orchestration_state_v1';
 
-export default function App() {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[Celebration Studio] UI Error Boundary caught an exception:', error, errorInfo);
+  }
+
+  handleReset = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+          <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 shadow-2xl">
+            <h2 className="text-base font-semibold text-zinc-100">Operational Continuity Guard</h2>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              An unexpected render anomaly was safely contained. You can restore clean production fixtures or refresh the workspace.
+            </p>
+            <button
+              onClick={this.handleReset}
+              className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors"
+            >
+              Restore Safe Production Fixtures
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function EventOSApp() {
   const [activeWorkflow, setActiveWorkflow] = useState<ActiveWorkflow>('blueprint');
 
   // Core Orchestration State
@@ -412,10 +460,15 @@ export default function App() {
         >
           <div className="relative">
             <img
-              src="/src/assets/images/producer_avatar_1793552717561.jpg"
+              src={producerAvatar || '/images/producer_avatar.jpg'}
               alt="Sarah Jenkins"
               referrerPolicy="no-referrer"
               className="w-6 h-6 rounded-full object-cover border border-zinc-600"
+              onError={(e) => {
+                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
+                  e.currentTarget.src = '/images/producer_avatar.jpg';
+                }
+              }}
             />
             <span className="w-2 h-2 rounded-full bg-emerald-500 absolute -top-0.5 -right-0.5 border border-zinc-950" />
           </div>
@@ -431,12 +484,14 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-zinc-400">
           <div className="flex items-center gap-3">
             <img
-              src="/src/assets/images/producer_avatar_1793552717561.jpg"
+              src={producerAvatar || '/images/producer_avatar.jpg'}
               alt="Lead Event Producer"
               referrerPolicy="no-referrer"
               className="w-8 h-8 rounded-full object-cover border border-zinc-700 shrink-0"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
+                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
+                  e.currentTarget.src = '/images/producer_avatar.jpg';
+                }
               }}
             />
             <div>
@@ -496,5 +551,13 @@ export default function App() {
         onCancel={() => setAlertDialog((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <EventOSApp />
+    </ErrorBoundary>
   );
 }

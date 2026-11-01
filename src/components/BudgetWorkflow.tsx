@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -64,11 +64,14 @@ export const BudgetWorkflow: React.FC<BudgetWorkflowProps> = ({
   const [newItemTip, setNewItemTip] = useState('0');
   const [newItemNotes, setNewItemNotes] = useState('');
 
-  // Calculations
-  const totalAllocated = categories.reduce((sum, c) => sum + c.allocatedAmount, 0);
-  const totalActualTrueCost = expenses.reduce(
-    (sum, e) => sum + computeExpenseTrueCost(e),
-    0
+  // Memoized Calculations
+  const totalAllocated = useMemo(
+    () => categories.reduce((sum, c) => sum + c.allocatedAmount, 0),
+    [categories]
+  );
+  const totalActualTrueCost = useMemo(
+    () => expenses.reduce((sum, e) => sum + computeExpenseTrueCost(e), 0),
+    [expenses]
   );
   const contingencyPool = targetBudget - totalAllocated;
   const committedPct = Math.round((totalActualTrueCost / targetBudget) * 100);
@@ -145,16 +148,18 @@ export const BudgetWorkflow: React.FC<BudgetWorkflowProps> = ({
     setNewItemNotes('');
   };
 
-  // Filtered expenses
-  const filteredExpenses = expenses.filter((e) => {
-    const matchesCat = selectedFilterCategory === 'all' || e.categoryId === selectedFilterCategory;
-    const matchesStatus = selectedFilterStatus === 'all' || e.status === selectedFilterStatus;
-    const matchesSearch =
-      searchQuery === '' ||
-      e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesStatus && matchesSearch;
-  });
+  // Memoized filtered expenses
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((e) => {
+      const matchesCat = selectedFilterCategory === 'all' || e.categoryId === selectedFilterCategory;
+      const matchesStatus = selectedFilterStatus === 'all' || e.status === selectedFilterStatus;
+      const matchesSearch =
+        searchQuery === '' ||
+        e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.vendor.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCat && matchesStatus && matchesSearch;
+    });
+  }, [expenses, selectedFilterCategory, selectedFilterStatus, searchQuery]);
 
   return (
     <div className="space-y-8">

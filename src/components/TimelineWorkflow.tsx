@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Calendar,
   Clock,
@@ -56,8 +56,8 @@ export const TimelineWorkflow: React.FC<TimelineWorkflowProps> = ({
   const [newDependsOn, setNewDependsOn] = useState<string[]>([]);
   const [formCycleWarning, setFormCycleWarning] = useState<string | null>(null);
 
-  // Run DFS Graph Cycle Detection algorithm across all current tasks
-  const cycleResult = detectGraphCycles(tasks);
+  // Memoized DFS Graph Cycle Detection algorithm
+  const cycleResult = useMemo(() => detectGraphCycles(tasks), [tasks]);
 
   // Status toggle handler
   const handleToggleStatus = (taskId: string) => {
@@ -177,10 +177,12 @@ export const TimelineWorkflow: React.FC<TimelineWorkflowProps> = ({
     setFormCycleWarning(null);
   };
 
-  // Filter tasks
-  const filteredTasks = tasks.filter((t) =>
-    selectedPhaseFilter === 'all' ? true : t.phase === selectedPhaseFilter
-  );
+  // Memoized task filtering
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) =>
+      selectedPhaseFilter === 'all' ? true : t.phase === selectedPhaseFilter
+    );
+  }, [tasks, selectedPhaseFilter]);
 
   return (
     <div className="space-y-8">
