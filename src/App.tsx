@@ -32,7 +32,7 @@ import { NormanPrinciplesModal } from './components/NormanPrinciplesModal';
 import { ExportModal } from './components/ExportModal';
 import { AlertDialog } from './components/AlertDialog';
 import { Layers, ShieldCheck, Compass } from 'lucide-react';
-import producerAvatar from './assets/images/producer_avatar_1793552717561.jpg';
+import { SarahAvatar } from './components/SarahAvatar';
 
 const STORAGE_KEY = 'eventos_orchestration_state_v1';
 
@@ -456,22 +456,9 @@ function EventOSApp() {
         <button
           onClick={() => setActiveWorkflow('concierge')}
           aria-label="Consult Sarah Jenkins"
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 bg-zinc-900/95 hover:bg-zinc-850 text-zinc-100 border border-zinc-700/80 rounded-full shadow-2xl backdrop-blur-md transition-all hover:scale-102 group"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 bg-zinc-900/95 hover:bg-zinc-850 text-zinc-100 border border-zinc-700/80 rounded-full shadow-2xl backdrop-blur-md transition-all hover:scale-102 group cursor-pointer"
         >
-          <div className="relative">
-            <img
-              src={producerAvatar || '/images/producer_avatar.jpg'}
-              alt="Sarah Jenkins"
-              referrerPolicy="no-referrer"
-              className="w-6 h-6 rounded-full object-cover border border-zinc-600"
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
-                  e.currentTarget.src = '/images/producer_avatar.jpg';
-                }
-              }}
-            />
-            <span className="w-2 h-2 rounded-full bg-emerald-500 absolute -top-0.5 -right-0.5 border border-zinc-950" />
-          </div>
+          <SarahAvatar size="xs" showStatusIndicator={true} />
           <span className="text-xs font-medium">Consult Sarah</span>
           <span className="text-xs font-mono text-indigo-400 bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-900/40">
             Live
@@ -483,17 +470,7 @@ function EventOSApp() {
       <footer className="w-full bg-zinc-950 border-t border-zinc-800/80 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-zinc-400">
           <div className="flex items-center gap-3">
-            <img
-              src={producerAvatar || '/images/producer_avatar.jpg'}
-              alt="Lead Event Producer"
-              referrerPolicy="no-referrer"
-              className="w-8 h-8 rounded-full object-cover border border-zinc-700 shrink-0"
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
-                  e.currentTarget.src = '/images/producer_avatar.jpg';
-                }
-              }}
-            />
+            <SarahAvatar size="md" />
             <div>
               <span className="font-semibold text-zinc-200 block">
                 Celebration Studio Directorate

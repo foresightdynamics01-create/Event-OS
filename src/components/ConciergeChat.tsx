@@ -22,7 +22,7 @@ import {
   VendorRecord,
 } from '../types/event';
 import { computeExpenseTrueCost, formatCurrency } from '../utils/budget';
-import producerAvatar from '../assets/images/producer_avatar_1793552717561.jpg';
+import { SarahAvatar } from './SarahAvatar';
 
 export interface ChatMessage {
   id: string;
@@ -257,20 +257,7 @@ export const ConciergeChat: React.FC<ConciergeChatProps> = ({
       {/* Concierge Desk Header */}
       <div className="p-4 sm:p-5 border-b border-zinc-800 bg-zinc-950/80 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <img
-              src={producerAvatar || '/images/producer_avatar.jpg'}
-              alt="Sarah Jenkins"
-              referrerPolicy="no-referrer"
-              className="w-10 h-10 rounded-full object-cover border border-zinc-700 shrink-0"
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
-                  e.currentTarget.src = '/images/producer_avatar.jpg';
-                }
-              }}
-            />
-            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-zinc-950 absolute bottom-0 right-0" />
-          </div>
+          <SarahAvatar size="lg" showStatusIndicator={true} />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-zinc-100">
@@ -352,17 +339,7 @@ export const ConciergeChat: React.FC<ConciergeChatProps> = ({
                   <User className="w-3.5 h-3.5" />
                 </div>
               ) : (
-                <img
-                  src={producerAvatar || '/images/producer_avatar.jpg'}
-                  alt="Sarah"
-                  referrerPolicy="no-referrer"
-                  className="w-7 h-7 rounded-full object-cover border border-zinc-700 shrink-0 mt-0.5"
-                  onError={(e) => {
-                    if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
-                      e.currentTarget.src = '/images/producer_avatar.jpg';
-                    }
-                  }}
-                />
+                <SarahAvatar size="sm" className="mt-0.5" />
               )}
 
               <div
@@ -384,17 +361,7 @@ export const ConciergeChat: React.FC<ConciergeChatProps> = ({
 
         {isLoading && (
           <div className="flex items-start gap-3">
-            <img
-              src={producerAvatar || '/images/producer_avatar.jpg'}
-              alt="Sarah"
-              referrerPolicy="no-referrer"
-              className="w-7 h-7 rounded-full object-cover border border-zinc-700 shrink-0 mt-0.5"
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + '/images/producer_avatar.jpg') {
-                  e.currentTarget.src = '/images/producer_avatar.jpg';
-                }
-              }}
-            />
+            <SarahAvatar size="sm" className="mt-0.5" />
             <div className="bg-zinc-950 border border-zinc-800 rounded-xl rounded-tl-none p-3.5 text-xs text-zinc-400 flex items-center gap-2">
               <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
               <span>Sarah is calculating logistical formulas...</span>

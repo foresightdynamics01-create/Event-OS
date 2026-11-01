@@ -4,24 +4,22 @@
  */
 
 import React from 'react';
-import { Download, BookOpen, Check } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { ActiveWorkflow } from '../types/event';
 
 interface HeaderProps {
   activeWorkflow: ActiveWorkflow;
   onSelectWorkflow: (wf: ActiveWorkflow) => void;
   onOpenExport: () => void;
-  onOpenPrinciples: () => void;
-  isSaving: boolean;
-  lastSavedAt: string;
+  onOpenPrinciples?: () => void;
+  isSaving?: boolean;
+  lastSavedAt?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeWorkflow,
   onSelectWorkflow,
   onOpenExport,
-  onOpenPrinciples,
-  isSaving,
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800">
@@ -107,30 +105,11 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Zone 3: Primary Action + Design Principles */}
+        {/* Zone 3: Primary Action */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="hidden lg:flex items-center gap-1.5 text-xs text-zinc-400">
-            {isSaving ? (
-              <span className="text-zinc-400">Saving...</span>
-            ) : (
-              <span className="flex items-center gap-1 text-zinc-400">
-                <Check className="w-3 h-3 text-emerald-500" /> Synced locally
-              </span>
-            )}
-          </div>
-
-          <button
-            onClick={onOpenPrinciples}
-            aria-label="Norman Design Principles"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:text-zinc-100 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="hidden sm:inline">Design Principles</span>
-          </button>
-
           <button
             onClick={onOpenExport}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors whitespace-nowrap shrink-0 shadow-sm cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             Export Dossier
