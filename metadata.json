@@ -1,0 +1,6 @@
+{
+  "name": "Celebration Studio (EventOS AI)",
+  "description": "Production-grade, human-crafted event orchestration platform built on cognitive design principles with priority budget rebalancing, critical-path timeline validation, stress-testing, and vendor contract auditing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
